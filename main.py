@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import sqlite3, shutil, os, datetime
 
+
 app = FastAPI()
 
 # 静的ファイルとテンプレート設定
