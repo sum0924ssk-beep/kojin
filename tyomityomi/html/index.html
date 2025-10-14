@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>調味料管理アプリ</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>📷 調味料管理アプリ</h1>
+
+  <form id="form" action="/upload" method="post" enctype="multipart/form-data">
+    <label>調味料名：</label><br>
+    <input type="text" name="name" required><br><br>
+
+    <label>賞味期限：</label><br>
+    <input type="date" name="expiry" required><br><br>
+
+    <label>写真を撮影：</label><br>
+    <input type="file" name="image" accept="image/*" capture="camera" required><br><br>
+
+    <button type="submit">登録する</button>
+  </form>
+
+  <hr>
+
+  <h2>登録済み一覧</h2>
+  {% if items %}
+  <div class="grid">
+    {% for id, name, expiry, image_path, created_at in items %}
+      <div class="card">
+        <img src="/{{ image_path }}" alt="{{ name }}">
+        <div class="info">
+          <strong>{{ name }}</strong><br>
+          賞味期限：{{ expiry }}<br>
+          登録日：{{ created_at }}
+          <form action="/delete/{{ id }}" method="post">
+            <button type="submit" class="del-btn">削除</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>まだ登録がありません。</p>
+  {% endif %}
+</body>
+</html>
