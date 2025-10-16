@@ -1,70 +1,18 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>ちょみちょみ!!!</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-  <h1>ちょみちょみ</h1>
+{% extends "base.html" %}
+{% block content %}
+<section class="container">
+  <h2>調味料を登録</h2>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="photoCanvas" style="display:none;"></canvas>
 
-  <form id="form" action="/upload" method="post" enctype="multipart/form-data">
-    <label>調味料名：</label><br>
-    <input type="text" name="name" required><br><br>
+    <div class="button-group">
+      <button type="button" id="captureBtn">📸 撮影</button>
+      <input type="file" name="file" accept="image/*" capture="environment">
+    </div>
 
-    <label>賞味期限：</label><br>
-    <input type="date" name="expiry" required><br><br>
-
-    <label>写真をちょみする：</label><br>
-    <input type="file" id="image" name="image" accept="image/*" capture="environment" required>
-
-
-    <img id="preview" src="" alt="プレビュー" style="width:200px; display:none;"><br><br>
-
-    <button type="submit">登録ちょみ</button>
+    <input type="text" name="name" placeholder="調味料名を入力" required>
+    <button type="submit">登録する</button>
   </form>
-
-  <hr>
-
-  <h2>登録済み一覧</h2>
-  {% if items %}
-  <div class="grid">
-    {% for id, name, expiry, image_path, created_at in items %}
-      <div class="card">
-        <img src="/{{ image_path }}" alt="{{ name }}">
-        <div class="info">
-          <strong>{{ name }}</strong><br>
-          賞味期限：{{ expiry }}<br>
-          登録日：{{ created_at }}
-          <form action="/delete/{{ id }}" method="post">
-            <button type="submit" class="del-btn">削除</button>
-          </form>
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p>まだ登録がありません。</p>
-  {% endif %}
-
-<script>
-const imageInput = document.getElementById("image");
-const preview = document.getElementById("preview");
-
-imageInput.addEventListener("change", function(){
-  const file = this.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = function(e){
-      preview.src = e.target.result;
-      preview.style.display = "block";
-    }
-    reader.readAsDataURL(file);
-  } else {
-    preview.src = "";
-    preview.style.display = "none";
-  }
-});
-</script>
-</body>
-</html>
+</section>
+{% endblock %}

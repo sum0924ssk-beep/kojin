@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="container">
+  <h2>登録済み調味料</h2>
+  <div class="list">
+    {% for item in items %}
+      <div class="card">
+        <img src="{{ item[1] }}" alt="photo">
+        <p>{{ item[0] }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
