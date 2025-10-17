@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* ログインページ専用の微調整 */
+.login-container {
+    padding: 40px 20px;
+    margin-top: 15vh;
+}
+</style>
+
+<section class="container login-container">
+    {% if error %}
+    <p style="color: white; background-color: #ff4d4d; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+        {{ error }}
+    </p>
+    {% endif %}
+
+    <form action="/login" method="post">
+        <input type="text" name="username" placeholder="ユーザーネーム" required>
+        <input type="password" name="password" placeholder="パスワード" required>
+        
+        <button type="submit">ログイン</button>
+    </form>
+    
+    <p style="text-align: center; font-size: 0.8rem; margin-top: 20px;">
+        <a href="#" style="color: #333; text-decoration: none;">アカウントをお持ちでない方はこちら</a>
+    </p>
+</section>
+{% endblock %}

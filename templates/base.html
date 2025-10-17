@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title or "ちょみちょみ" }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "ちょみちょみ" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
-  <header class="header">
-    <h1>ちょみちょみ</h1>
-  </header>
+    <header class="header">
+        <h1>ちょみちょみ</h1>
+    </header>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
-  <footer class="footer">
-    <nav>
-      <a href="/">📷 登録</a>
-      <a href="/list">📋 一覧</a>
-    </nav>
-  </footer>
+    <footer class="footer">
+        <nav>
+            <a href="/">📷 登録</a>
+            <a href="/list">📋 一覧</a>
+            
+            <form action="/logout" method="post" style="display:inline;">
+                <button type="submit" style="background: none; border: none; color: #333; cursor: pointer; padding: 0 10px; font-size: 1rem;">
+                    🔒 ログアウト
+                </button>
+            </form>
+        </nav>
+    </footer>
 </body>
 </html>
