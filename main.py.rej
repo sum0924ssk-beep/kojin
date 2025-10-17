@@ -1,0 +1,27 @@
+diff a/main.py b/main.py	(rejected hunks)
+@@ -1,12 +0,23 @@
+-from fastapi import FastAPI, Form, UploadFile, File, Request
++from fastapi import FastAPI, Form, UploadFile, File, Request, Depends, status
+ from fastapi.responses import HTMLResponse, RedirectResponse
+ from fastapi.staticfiles import StaticFiles
+ from fastapi.templating import Jinja2Templates
+-import sqlite3, shutil, os, datetime
++from starlette.middleware.sessions import SessionMiddleware # セッション管理用
++from passlib.context import CryptContext # パスワードハッシュ化用
+ 
++import sqlite3
++import shutil
++import os
++import datetime
+ 
++# --- 設定と初期化 ---
+ app = FastAPI()
+ 
++# 環境変数からシークレットキーを取得するか、固定値を設定
++# ★ 運用時は必ず安全なシークレットキーを設定してください！
++SECRET_KEY = os.environ.get("SECRET_KEY", "your-super-secret-key-that-should-be-random")
++app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
++
+ # 静的ファイルとテンプレート設定
+ os.makedirs("uploads", exist_ok=True)
+ templates = Jinja2Templates(directory="templates")

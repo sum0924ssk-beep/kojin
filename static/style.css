@@ -1,80 +1,84 @@
-/* ====== 全体設定 ====== */
 body {
   font-family: 'Noto Sans JP', sans-serif;
   margin: 0;
   padding: 0;
-  background: linear-gradient(to bottom, #ff914d, #5ee6eb);
   min-height: 100vh;
+  background: linear-gradient(180deg, #ff9b4a, #7fd5ff);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  color: #333;
 }
 
-/* ====== ヘッダー ====== */
-header {
+.header {
   text-align: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-top: 30px;
+  padding: 1em;
+  font-size: 1.6em;
   color: white;
-  letter-spacing: 0.1em;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
 }
 
-/* ====== コンテナ ====== */
 .container {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  padding: 20px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  margin: 20px 0;
+  flex: 1;
+  padding: 1.5em;
+  text-align: center;
 }
 
-/* ====== 入力フォーム ====== */
-input[type="text"],
-input[type="file"],
-button {
-  width: 100%;
-  margin: 10px 0;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-/* ====== ボタン ====== */
-button {
-  background: linear-gradient(to right, #ff914d, #5ee6eb);
+h2 {
   color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+}
+
+form input[type="text"] {
+  width: 80%;
+  padding: 0.8em;
+  margin: 1em 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+}
+
+button {
+  background: white;
+  border: none;
+  padding: 0.8em 1.2em;
+  border-radius: 12px;
+  font-size: 1em;
+  margin: 0.5em;
 }
 
 button:hover {
-  transform: scale(1.03);
+  background: #ffe6cc;
 }
 
-/* ====== 画像プレビュー ====== */
-img.preview {
+.footer {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  padding: 0.5em;
+  text-align: center;
+}
+
+.footer a {
+  color: white;
+  text-decoration: none;
+  margin: 0 1em;
+  font-size: 1.2em;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  width: 120px;
+  margin: 0.5em;
+  padding: 0.5em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.card img {
   width: 100%;
-  border-radius: 10px;
-  margin-bottom: 15px;
-}
-
-/* ====== レスポンシブ対応 ====== */
-@media (max-width: 480px) {
-  header {
-    font-size: 1.6rem;
-  }
-  .container {
-    width: 95%;
-    padding: 15px;
-  }
-  button {
-    font-size: 0.9rem;
-  }
+  border-radius: 8px;
 }
