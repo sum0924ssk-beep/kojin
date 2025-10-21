@@ -196,6 +196,7 @@ onclick="openModal(this)"> <!-- これがモーダルを開くトリガー -->
  <div class="item-info">
  <p>{{ item.name }}</p> 
           <p class="item-date">登録日: {{ item.registered_date }}</p>
+           <p class="item-date">賞味期限: {{ item.expiry }}</p> 
  </div>
  </div>
  {% endfor %}
