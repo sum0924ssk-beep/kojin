@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="container">
-  <h2>調味料を登録</h2>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <video id="camera" autoplay playsinline></video>
-    <canvas id="photoCanvas" style="display:none;"></canvas>
+ <h2>調味料を登録</h2>
+ <form action="/upload" method="post" enctype="multipart/form-data">
+ <video id="camera" autoplay playsinline></video>
+ <canvas id="photoCanvas" style="display:none;"></canvas>
 
-    <div class="button-group">
-      <button type="button" id="captureBtn">📸 撮影</button>
-      <input type="file" name="file" accept="image/*" capture="environment">
-    </div>
+ <div class="button-group">
+      <label for="fileInput" class="custom-file-upload">
+          📸 撮影
+      </label>
+      <input type="file" id="fileInput" name="file" accept="image/*" capture="environment" style="display: none;">
+ </div>
 
-    <input type="text" name="name" placeholder="調味料名を入力" required>
-    <button type="submit">登録する</button>
-  </form>
+ <input type="text" name="name" placeholder="調味料名を入力" required>
+ <button type="submit">登録する</button>
+ </form>
 </section>
 {% endblock %}

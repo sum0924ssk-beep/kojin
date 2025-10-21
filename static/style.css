@@ -82,3 +82,32 @@ button:hover {
   width: 100%;
   border-radius: 8px;
 }
+/* style.css の既存のスタイルに追記 */
+
+/* 1. input[type="file"]要素を非表示にする */
+#fileInput { /* または input[type="file"] { */
+    display: none !important;
+}
+
+/* 2. <label>要素を既存の<button>と同じようにスタイリングする */
+.custom-file-upload {
+    /* 既存の<button>のスタイルをコピー */
+    background: white;
+    border: none;
+    padding: 0.8em 1.2em;
+    border-radius: 12px;
+    font-size: 1em;
+    margin: 0.5em;
+    
+    /* ボタンとして機能させるための重要な設定 */
+    display: inline-block; /* ブロック要素のように扱えるようにする */
+    cursor: pointer;      /* マウスカーソルをポインターにする */
+    font-weight: bold;    /* 文字を太くする（任意） */
+    color: black;
+    text-align: center;
+}
+
+/* 3. ホバー時のスタイルを既存の<button>に合わせて設定 */
+.custom-file-upload:hover {
+    background: #ffe6cc; /* 既存のbutton:hoverと同じ */
+}
