@@ -194,7 +194,7 @@ onclick="openModal(this)">
 
 <div class="item-info">
 <p>{{ item.name }}</p> 
- <p class="item-date">登録日: {{ item.registered_date }}</p>
+<p class="item-date">登録日: {{ item.registered_date }}</p>
 <p class="item-date">賞味期限: {{ item.expiry }}</p> 
 </div>
 </div>
@@ -202,4 +202,82 @@ onclick="openModal(this)">
 </div>
 </section>
 
+<div id="itemModal" class="modal">
+<div class="modal-content">
+ <span class="close-btn" onclick="closeModal()">&times;</span>
+<div class="modal-body">
+<img id="modalImage" src="" alt="拡大画像">
+ <h3 id="modalName"></h3>
+
+<div class="modal-details">
+<p><strong>登録日:</strong> <span id="modalRegisteredDate"></span></p>
+ <p><strong>賞味期限:</strong> <span id="modalExpiryDate"></span></p>
+</div>
+ <form id="deleteForm" method="post" class="delete-form">
+ <button type="submit" onclick="return confirm('本当にこのアイテムを削除しますか？')">🗑️ このアイテムを削除</button>
+ </form>
+ </div>
+ </div>
+</div>
+
+<script>
+// 🚨 JavaScript関数をグローバルスコープで定義
+const modal = document.getElementById("itemModal");
+const modalImage = document.getElementById("modalImage");
+const modalName = document.getElementById("modalName");
+const modalRegisteredDate = document.getElementById("modalRegisteredDate");
+const modalExpiryDate = document.getElementById("modalExpiryDate");
+const deleteForm = document.getElementById("deleteForm");
+
+/**
+ * カードデータを受け取り、モーダルを開いて詳細を表示する
+ * @param {HTMLElement} cardElement - クリックされたアイテムカード要素
+ */
+function openModal(cardElement) {
+    // データの取得
+    const id = cardElement.getAttribute('data-id');
+    const name = cardElement.getAttribute('data-name');
+    const image = cardElement.getAttribute('data-image');
+    const expiry = cardElement.getAttribute('data-expiry');
+    const registered = cardElement.getAttribute('data-registered');
+    
+    // モーダル要素へのデータ挿入
+    modalImage.src = image;
+    modalName.textContent = name;
+    modalRegisteredDate.textContent = registered;
+    
+    // 賞味期限の表示調整と期限切れチェック
+    if (expiry) {
+        modalExpiryDate.textContent = expiry;
+        modalExpiryDate.style.color = '#333';
+        
+        // 簡易的な期限チェック (今日の日付と比較)
+        const today = new Date().toISOString().split('T')[0];
+        if (expiry < today) {
+            modalExpiryDate.textContent = expiry + " (期限切れ!)";
+            modalExpiryDate.style.color = '#e74c3c'; // 赤色
+        }
+    } else {
+        modalExpiryDate.textContent = '未設定';
+        modalExpiryDate.style.color = '#7f8c8d';
+    }
+
+    // 削除フォームの Action URLを設定 (例: /delete/123)
+    deleteForm.action = `/delete/${id}`;
+    
+    // モーダルを表示
+    modal.style.display = "block";
+}
+
+function closeModal() {
+    modal.style.display = "none";
+}
+
+// モーダルの外側をクリックで閉じる
+window.onclick = function(event) {
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
 {% endblock %}
