@@ -3,12 +3,11 @@
 <section class="container">
 <h2>調味料を登録</h2>
 <form action="/upload" method="post" enctype="multipart/form-data">
-    <video id="camera" autoplay playsinline style="width: 100%; max-width: 400px; display: block; margin: 0 auto; border: 1px solid #ccc;"></video>
     <canvas id="photoCanvas" style="display:none;"></canvas>
 
     <div class="button-group" style="text-align: center; margin: 20px 0;">
         <label for="fileInput" class="custom-file-upload" style="display: inline-block; padding: 10px 20px; background-color: #2ecc71; color: white; border-radius: 5px; cursor: pointer;">
-            カメラ起動中...
+            カメラ起動
         </label>
         <input type="file" id="fileInput" name="file" accept="image/*" capture="environment" style="display: none;">
     </div>
