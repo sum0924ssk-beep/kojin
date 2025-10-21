@@ -4,17 +4,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import sqlite3, shutil, os, datetime
 
+# アプリケーションの初期化
 app = FastAPI()
 
-# 静的ファイルとテンプレート設定
-os.makedirs("uploads", exist_ok=True)
+# 設定
 templates = Jinja2Templates(directory="templates")
-
-# 【重要】静的ファイルとして CSSやJSなど（static/）と、アップロードされた画像（uploads/）をマウント
-app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-
 DB_NAME = "condiments.db"
+os.makedirs("uploads", exist_ok=True) # 画像アップロードフォルダの確認/作成
+
+# 静的ファイルとアップロードフォルダをWebからアクセス可能にする設定
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads") # アップロード画像を公開
 
 # DB初期化
 conn = sqlite3.connect(DB_NAME)
@@ -31,41 +31,39 @@ conn.commit()
 conn.close()
 
 # ----------------------------------------------------------------------
-# GET: 登録画面と一覧表示の統合エンドポイント
+# GET: 登録画面（ルートパス）
 # ----------------------------------------------------------------------
+# ルートパスでは、フォームを表示するだけでなく、一覧表示のデータも渡す（index.htmlで両方表示するため）
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    # 必要なデータを取得: id, name, image_path
-    cur.execute("SELECT name, image_path FROM condiments ORDER BY id DESC")
+    # 登録アイテムを取得 (削除機能がないため、すべてのフィールドを取得)
+    cur.execute("SELECT id, name, expiry, image_path, created_at FROM condiments ORDER BY id DESC")
     raw_items = cur.fetchall()
     conn.close()
-
-    # 【★修正点★】データベースのファイルパスを、Webアクセス可能なURL形式に変換
+    
+    # テンプレートに渡すデータ形式を調整 (ここではindex.html側で使用しないが、一貫性のためリストを渡す)
     items = []
     for row in raw_items:
-        name, image_path = row
-        
-        # データベースに保存されているパス (例: "uploads/filename.jpg") を
-        # Webブラウザからアクセス可能な URL (例: "/uploads/filename.jpg") に変換
-        image_url = f"/{image_path}" 
-        
-        # テンプレートに渡すデータ形式 (調味料名, 画像URL) を作成
-        items.append((name, image_url))
+        item_id, name, expiry, image_path, created_at = row
+        # image_path は "uploads/..." なので、URLとしては "/uploads/..." になる
+        image_url = f"/{image_path}"
+        # 登録画面で一覧が必要な場合は、適切なデータ形式で渡す
+        items.append((item_id, name, image_url))
 
     # index.html は「登録」画面と「一覧」表示を兼ねているものとする
     return templates.TemplateResponse("index.html", {"request": request, "items": items})
 
-# ----------------------------------------------------------------------
-# POST: 画像とデータのアップロード
-# ----------------------------------------------------------------------
-# FastAPIコード（app.py 相当）の修正
 
+# ----------------------------------------------------------------------
+# POST: 画像とデータのアップロード（修正済）
+# ----------------------------------------------------------------------
 @app.post("/upload")
+# 【★修正点★】expiryを必須ではない(Noneを許可)にし、画像フィールド名を 'file' に統一
 async def upload(name: str = Form(...), file: UploadFile = File(...), expiry: str = Form(None)):
     filename = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
-    file_path = f"uploads/{filename}" # DBに保存するパス
+    file_path = f"uploads/{filename}"
 
     # ファイルの保存
     with open(file_path, "wb") as buffer:
@@ -74,12 +72,36 @@ async def upload(name: str = Form(...), file: UploadFile = File(...), expiry: st
     conn = sqlite3.connect(DB_NAME)
     conn.execute(
         "INSERT INTO condiments (name, expiry, image_path, created_at) VALUES (?, ?, ?, ?)",
-        (name, expiry, file_path, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        (name, expiry if expiry else "", file_path, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     )
     conn.commit()
     conn.close()
 
     return RedirectResponse("/", status_code=303)
+
+
+# ----------------------------------------------------------------------
+# GET: 一覧表示専用エンドポイント（リクエストされた追加機能）
+# ----------------------------------------------------------------------
+@app.get("/list", response_class=HTMLResponse)
+async def list_items(request: Request):
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    # 必要なデータをDBから取得: name, image_path
+    cur.execute("SELECT name, image_path FROM condiments ORDER BY id DESC")
+    raw_items = cur.fetchall()
+    conn.close()
+
+    # 画像パスをURLに変換する処理
+    items = []
+    for row in raw_items:
+        name, image_path = row
+        # DBパス ("uploads/...") をWeb URL ("/uploads/...") に変換
+        image_url = f"/{image_path}"
+        items.append((name, image_url))
+        
+    # 【★ポイント★】一覧表示用のテンプレート名 list.html を使用
+    return templates.TemplateResponse("list.html", {"request": request, "items": items})
 
 # ----------------------------------------------------------------------
 # POST: アイテムの削除
@@ -95,7 +117,7 @@ async def delete_item(item_id: int):
     if row:
         image_path = row[0]
         if os.path.exists(image_path):
-            os.remove(image_path) # 物理ファイルの削除
+            os.remove(image_path)
     
     # データベースのレコードを削除
     cur.execute("DELETE FROM condiments WHERE id=?", (item_id,))
