@@ -1,19 +1,14 @@
+// static/script.js の内容
 document.addEventListener("DOMContentLoaded", async () => {
     // 必須要素の参照
     const video = document.getElementById("camera");
     const canvas = document.getElementById("photoCanvas");
     const fileInput = document.getElementById("fileInput");
-    // label要素を参照（カスタム撮影ボタンとして使用）
     const captureButton = document.querySelector(".custom-file-upload"); 
 
     // HTML要素の参照が失敗した場合に処理を中断
     if (!video || !canvas || !fileInput || !captureButton) {
-        console.error("🔴 必須のHTML要素が見つかりません。ID/クラスを確認してください。");
-        // ボタンを無効化してユーザーにフィードバック
-        if (captureButton) {
-            captureButton.textContent = "設定エラー";
-            // labelはdisabled属性がないため、ここではCSSなどで無効に見せる処理が必要です
-        }
+        console.error("🔴 必須のHTML要素が見つかりません。カメラ関連機能は動作しません。");
         return;
     }
 
@@ -32,20 +27,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         video.onloadedmetadata = () => {
             console.log("カメラストリームの準備ができました。");
             isCameraReady = true;
-            captureButton.textContent = "📸 写真を撮影する"; 
+            captureButton.textContent = "📸 撮影する"; 
         };
 
     } catch (err) {
         console.error("🔴 カメラ起動エラー:", err);
         alert("カメラにアクセスできません。権限を確認するか、サイトがHTTPS接続になっているか確認してください。");
         captureButton.textContent = "カメラ使用不可";
-        // ボタンを無効化する代わりに、クリックイベントが発生しないようにフラグをfalseのままにする
         return;
     }
 
     // 📸 撮影ボタンクリック時の処理
     captureButton.addEventListener("click", (event) => {
-        // label要素が本来持つ input[type=file] を開く動作を阻止
+        // デフォルトのファイル選択ダイアログの動作を阻止
         event.preventDefault(); 
 
         if (!isCameraReady || !video.srcObject) {
@@ -67,13 +61,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
             
-            const file = new File([blob], "captured_item.jpeg", { type: "image/jpeg" });
+            // ファイルオブジェクトの作成
+            const file = new File([blob], "capture_" + Date.now() + ".jpeg", { type: "image/jpeg" });
+            
+            // DataTransferを使用してinput[type=file]に値をセット
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             fileInput.files = dataTransfer.files;
             
-            alert("✅ 写真を撮影しました！フォームにセットされています。");
+            alert("✅ 写真を撮影しました！フォームにセットされました。");
             
-        }, "image/jpeg", 0.9);
+        }, "image/jpeg", 0.9); // JPEG形式、品質0.9
     });
 });
