@@ -60,9 +60,10 @@ async def index(request: Request):
 # ----------------------------------------------------------------------
 # POST: 画像とデータのアップロード
 # ----------------------------------------------------------------------
+# FastAPIコード（app.py 相当）の修正
+
 @app.post("/upload")
-async def upload(name: str = Form(...), expiry: str = Form(...), file: UploadFile = File(...)):
-    # UploadFile の変数名を 'file' に統一
+async def upload(name: str = Form(...), file: UploadFile = File(...), expiry: str = Form(None)):
     filename = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
     file_path = f"uploads/{filename}" # DBに保存するパス
 
