@@ -45,48 +45,50 @@ def init_db():
 init_db()
 
 
-# --- レシピAPI設定 (外部APIを利用する場合はここに設定) ---
+# --- レシピAPI設定 (キーワード検索APIに切り替え) ---
 
-# ⚠ 注意: 楽天APIのCategoryRankingはキーワード検索には適しません。
-# 実際には、キーワード検索が可能な別のレシピAPI、またはChatGPT APIなどを利用してください。
-# ここでは、API呼び出しの構造を示すための例として利用します。
-RAKUTEN_APP_ID = "YOUR_RAKUTEN_APP_ID" # 👈 自分のIDに置き換える
-RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/CategoryRanking/20170426" 
+# ⚠ 注意: 楽天レシピAPIのキーワード検索APIに切り替えました。
+RAKUTEN_APP_ID = "1013897941253771301" 
+# 💡 楽天レシピ キーワード検索 APIの正しいエンドポイントURL
+RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/RecipeSearch/20170426" 
 
 # --- API呼び出し関数 ---
 async def fetch_recipes_from_api(ingredients_query: str):
     """
     期限が近い調味料名 (ingredients_query) を使ってレシピAPIを呼び出す
     """
-    # 楽天APIはCategoryRankingのため、キーワード検索が難しい。
-    # 実際は、材料検索が可能なAPIを使用するか、OpenAI APIでレシピを生成する
-    
-    # 💡 実際にはここにAPI呼び出しロジックを実装する
-    # async with httpx.AsyncClient() as client:
-    #     try:
-    #         response = await client.get(
-    #             RAKUTEN_RECIPE_URL,
-    #             params={
-    #                 "applicationId": RAKUTEN_APP_ID,
-    #                 "keyword": ingredients_query,
-    #                 "format": "json"
-    #             },
-    #             timeout=10.0
-    #         )
-    #         # レスポンス解析ロジック...
-    #         # return parsed_recipes 
-    #     except Exception as e:
-    #         print(f"レシピAPI呼び出しエラー: {e}")
-    #         return []
-
-
-    # 🚨 ダミーデータ: 検索クエリに基づいた仮のレシピを返す
-    # 実際のAPI実装が完了するまではこのダミーデータを使用してください
-    return [
-        {"title": f"【活用レシピ1】{ingredients_query}", "url": "https://cookpad.com/"},
-        {"title": f"【活用レシピ2】{ingredients_query}で時短", "url": "https://www.kurashiru.com/"},
-        {"title": f"【活用レシピ3】基本の{ingredients_query}料理", "url": "https://delishkitchen.tv/"},
-    ]
+    # 💡 楽天 キーワード検索 APIのロジックを実装
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                RAKUTEN_RECIPE_URL,
+                params={
+                    "applicationId": RAKUTEN_APP_ID,
+                    "keyword": ingredients_query, # 👈 キーワード検索用パラメータ
+                    "format": "json"
+                },
+                timeout=10.0
+            )
+            response.raise_for_status() # 4xx, 5xxエラー時に例外を発生
+            data = response.json()
+            
+            recipes = []
+            # 楽天レシピ検索APIのレスポンス構造を解析
+            if 'result' in data and 'recipes' in data['result']:
+                for item in data['result']['recipes']:
+                    recipe = item['recipe']
+                    recipes.append({
+                        "title": recipe.get('recipeTitle', 'タイトルなし'),
+                        "url": recipe.get('recipeUrl', '#')
+                    })
+            return recipes
+            
+        except httpx.HTTPStatusError as e:
+            print(f"HTTPエラーが発生しました: {e}")
+            return []
+        except Exception as e:
+            print(f"レシピAPI呼び出し中にエラーが発生しました: {e}")
+            return []
 
 
 # --- エンドポイント ---
