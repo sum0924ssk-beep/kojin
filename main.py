@@ -10,9 +10,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
 
 # --- 設定 ---
-DB_NAME = "condiments.db"
-# 画像アップロード先のディレクトリ (uploadsフォルダを作成しておく)
-UPLOAD_DIR = Path("uploads")
+# 💡 修正: デプロイ環境で書き込み可能な/tmp以下のパスを指定
+TMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/condiments_app")) 
+DB_NAME = TMP_DIR / "condiments.db"
+UPLOAD_DIR = TMP_DIR / "uploads"
 # 期限切れが近いと見なす日数
 EXPIRY_THRESHOLD_DAYS = 7 
 
@@ -22,13 +23,16 @@ templates = Jinja2Templates(directory="templates")
 
 # 静的ファイルの提供 (CSS, JS, 画像など)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, name="uploads"), name="uploads")
 
 
 # --- データベース初期化 ---
 def init_db():
+    # 💡 修正: /tmp以下のディレクトリを作成
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    conn = sqlite3.connect(DB_NAME)
+    
+    # DB_NAME (Pathオブジェクト) をそのままconnectに渡す
+    conn = sqlite3.connect(DB_NAME) 
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS condiments (
@@ -48,8 +52,9 @@ init_db()
 # --- レシピAPI設定 (キーワード検索APIに切り替え) ---
 
 # ⚠ 注意: 楽天レシピAPIのキーワード検索APIに切り替えました。
-RAKUTEN_APP_ID = "1013897941253771301" 
-# 💡 楽天レシピ キーワード検索 APIの正しいエンドポイントURL
+# 💡 修正: 環境変数から読み込む (設定されていない場合は直接書き込んだキーを使用)
+# 環境変数に設定できない場合は、RAKUTEN_APP_ID = "実際のキー" としてください。
+RAKUTEN_APP_ID = os.environ.get("RAKUTEN_APP_ID", "1013897941253771301") 
 RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/RecipeSearch/20170426" 
 
 # --- API呼び出し関数 ---
@@ -84,6 +89,7 @@ async def fetch_recipes_from_api(ingredients_query: str):
             return recipes
             
         except httpx.HTTPStatusError as e:
+            # APIキーが不正、またはアクセス制限の場合、ここでエラーが出ます (400 Bad Requestなど)
             print(f"HTTPエラーが発生しました: {e}")
             return []
         except Exception as e:
@@ -181,8 +187,11 @@ async def delete_condiment(item_id: int):
     cur.execute("SELECT image_path FROM condiments WHERE id = ?", (item_id,))
     row = cur.fetchone()
     if row and row[0]:
-        image_path = row[0].replace("/uploads/", "")
-        file_to_delete = UPLOAD_DIR / image_path
+        # Pathオブジェクトとしてファイルパスを再構築
+        # /uploads/filename.jpg -> uploads/filename.jpg
+        image_relative_path = row[0].replace("/uploads/", "")
+        file_to_delete = UPLOAD_DIR / image_relative_path 
+        
         if file_to_delete.exists():
             os.remove(file_to_delete)
             
