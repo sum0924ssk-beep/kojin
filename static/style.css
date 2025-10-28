@@ -3,20 +3,28 @@
     ==================================== */
 body {
     font-family: 'Noto Sans JP', sans-serif;
+    /* 💥 修正: bodyのデフォルトマージン・パディングを確実にリセット 💥 */
     margin: 0;
-    padding: 0;
+    padding: 0; 
+    /* ---------------------------------------------------- */
     min-height: 100vh;
     /* 背景グラデーション */
     background: linear-gradient(180deg, #ff9b4a, #7fd5ff); 
     display: flex;
     flex-direction: column;
+    /* 念のため、ボックスモデルをborder-boxに統一 */
+    box-sizing: border-box; 
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 .header, .footer {
     /* フロストガラス効果 */
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px); /* Safari対応 */
+    -webkit-backdrop-filter: blur(8px); 
 }
 
 .header {
@@ -28,9 +36,9 @@ body {
 
 .container {
     flex: 1;
-    padding: 1.5em;
-    /* .container内のテキストは中央寄せ */
-    text-align: center; 
+    /* 💥 修正: text-alignを削除し、左右のスペースはpaddingで確保 💥 */
+    padding: 1.5em; 
+    /* text-align: center; 👈 削除 */
 }
 
 h2 {
@@ -39,9 +47,9 @@ h2 {
 
 /* フォーム全体を中央に配置し、幅を制限する */
 form {
-    width: 90%; /* フォーム全体の幅を少し制限 */
-    max-width: 500px; /* PCでの最大幅 */
-    margin: 0 auto; /* フォーム全体を中央寄せにする */
+    width: 90%; 
+    max-width: 500px; 
+    margin: 0 auto; /* フォーム全体を中央寄せ */
     text-align: center; 
     padding: 0;
 }
@@ -62,13 +70,13 @@ form {
 form input[type="text"], 
 form input[type="date"], 
 form button[type="submit"] {
-    width: 80%; /* 画面幅の80%に制限 */
-    max-width: 400px; /* PCでの最大幅 */
+    width: 80%; 
+    max-width: 400px; 
     padding: 0.8em;
     
     /* 中央寄せのための必須設定 */
     display: block;  
-    margin: 1em auto; /* 上下マージンと左右自動マージンで中央寄せ */
+    margin: 1em auto; 
     
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -109,11 +117,11 @@ form button[type="submit"]:hover {
     font-size: 1em;
     font-weight: bold;
     
-    /* 💥 最終修正: display: block; と margin: auto で確実な中央寄せ 💥 */
-    display: block; /* 👈 ここを block に変更 */
+    /* 💥 修正: display: block; と margin: auto で確実な中央寄せ 💥 */
+    display: block; 
     cursor: pointer;
     text-align: center;
-    margin: 0.5em auto; /* 👈 左右を auto に変更 */
+    margin: 0.5em auto; 
 }
 
 .custom-file-upload:hover {
