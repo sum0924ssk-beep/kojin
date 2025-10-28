@@ -10,30 +10,18 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
 
 # --- 設定 ---
-# 💡 修正: デプロイ環境で書き込み可能な/tmp以下のパスを指定
+# 💡 デプロイ環境で書き込み可能な/tmp以下のパスを指定
 TMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/condiments_app")) 
 DB_NAME = TMP_DIR / "condiments.db"
 UPLOAD_DIR = TMP_DIR / "uploads"
 # 期限切れが近いと見なす日数
 EXPIRY_THRESHOLD_DAYS = 7 
 
-# FastAPIとテンプレート設定
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-
-# 静的ファイルの提供 (CSS, JS, 画像など)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# 🚨 修正: StaticFiles() の引数から 'name="uploads"' を削除しました
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads") 
-
-
 # --- データベース初期化 ---
 def init_db():
-    # 💡 修正: /tmp以下のディレクトリを作成
+    # 💡 StaticFiles のマウントより前にディレクトリを作成する必要がある
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     
-    # DB_NAME (Pathオブジェクト) をそのままconnectに渡す
     conn = sqlite3.connect(DB_NAME) 
     cur = conn.cursor()
     cur.execute("""
@@ -47,11 +35,24 @@ def init_db():
     conn.commit()
     conn.close()
 
-# アプリ起動時にDB初期化
-init_db()
+# 🚨 修正: アプリケーションの初期化とマウントの前にDB初期化（フォルダ作成）を実行
+init_db() 
+
+
+# FastAPIとテンプレート設定
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+# 静的ファイルの提供 (CSS, JS, 画像など)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 🚨 修正: StaticFiles.__init__() から 'name' 引数を削除
+# フォルダが init_db() で作成されているため、ここでマウント可能
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 # --- レシピAPI設定 (キーワード検索APIに切り替え) ---
+# 環境変数から読み込む（設定されていない場合はハードコードされたキーを使用）
 RAKUTEN_APP_ID = os.environ.get("RAKUTEN_APP_ID", "1013897941253771301") 
 RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/RecipeSearch/20170426" 
 
@@ -109,9 +110,11 @@ async def register_condiment(
     image_path = None
     if image and image.filename:
         ext = Path(image.filename).suffix
+        # ファイル名を生成
         unique_filename = f"{Path(name).stem}_{date.today().strftime('%Y%m%d')}_{os.urandom(8).hex()}{ext}"
         file_path = UPLOAD_DIR / unique_filename
         
+        # ファイルを保存
         try:
             with file_path.open("wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
@@ -178,6 +181,7 @@ async def delete_condiment(item_id: int):
     cur.execute("SELECT image_path FROM condiments WHERE id = ?", (item_id,))
     row = cur.fetchone()
     if row and row[0]:
+        # Pathオブジェクトとしてファイルパスを再構築
         image_relative_path = row[0].replace("/uploads/", "")
         file_to_delete = UPLOAD_DIR / image_relative_path 
         
