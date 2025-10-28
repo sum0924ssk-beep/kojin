@@ -1,113 +1,303 @@
+/* ====================================
+    0. グローバルリセット & 基本レイアウト
+    ==================================== */
 body {
-  font-family: 'Noto Sans JP', sans-serif;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #ff9b4a, #7fd5ff);
-  display: flex;
-  flex-direction: column;
+    font-family: 'Noto Sans JP', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    /* 背景グラデーション */
+    background: linear-gradient(180deg, #ff9b4a, #7fd5ff); 
+    display: flex;
+    flex-direction: column;
+}
+
+.header, .footer {
+    /* フロストガラス効果 */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); /* Safari対応 */
 }
 
 .header {
-  text-align: center;
-  padding: 1em;
-  font-size: 1.6em;
-  color: white;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(8px);
+    text-align: center;
+    padding: 1em;
+    font-size: 1.6em;
+    color: white;
 }
 
 .container {
-  flex: 1;
-  padding: 1.5em;
-  text-align: center;
+    flex: 1;
+    padding: 1.5em;
+    text-align: center;
 }
 
 h2 {
-  color: white;
+    color: white;
 }
 
-form input[type="text"] {
-  width: 80%;
-  padding: 0.8em;
-  margin: 1em 0;
-  border: none;
-  border-radius: 8px;
-  font-size: 1em;
+/* ====================================
+    1. フォーム & ボタン スタイル (中央寄せ修正済み)
+    ==================================== */
+
+/* フォームタイトル (list.htmlのh2と区別する場合) */
+.container h2.form-title {
+    color: #2c3e50; /* フォームに合わせた濃い色 (任意) */
+    margin: 20px 0 30px;
+    font-size: 1.8rem;
+    font-weight: 700;
 }
 
-button {
-  background: white;
-  border: none;
-  padding: 0.8em 1.2em;
-  border-radius: 12px;
-  font-size: 1em;
-  margin: 0.5em;
+/* フォーム入力フィールドと submit ボタンの共通スタイル */
+form input[type="text"], 
+form input[type="date"], 
+form button[type="submit"] {
+    width: 80%; /* 画面幅の80%に制限 */
+    max-width: 400px; /* PCでの最大幅 */
+    padding: 0.8em;
+    
+    /* 💥 中央寄せのための必須設定 💥 */
+    display: block;  
+    margin: 1em auto; /* 上下マージンと左右自動マージンで中央寄せ */
+    
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    box-sizing: border-box; /* paddingを含めたwidth計算 */
 }
 
-button:hover {
-  background: #ffe6cc;
+/* submit ボタン固有のスタイル */
+form button[type="submit"] {
+    padding: 12px;
+    background-color: #3498db; 
+    color: white; 
+    border: none; 
+    cursor: pointer;
 }
 
-.footer {
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(8px);
-  padding: 0.5em;
-  text-align: center;
+form button[type="submit"]:hover {
+    background-color: #2980b9; 
 }
 
-.footer a {
-  color: white;
-  text-decoration: none;
-  margin: 0 1em;
-  font-size: 1.2em;
+
+/* 1-2. カメラ起動ボタン（カスタムファイルアップロード） */
+#fileInput { 
+    display: none !important; /* 必須: 元のinput[type=file]を非表示に */
 }
 
-.list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  width: 120px;
-  margin: 0.5em;
-  padding: 0.5em;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.card img {
-  width: 100%;
-  border-radius: 8px;
-}
-/* style.css の既存のスタイルに追記 */
-
-/* 1. input[type="file"]要素を非表示にする */
-#fileInput { /* または input[type="file"] { */
-    display: none !important;
-}
-
-/* 2. <label>要素を既存の<button>と同じようにスタイリングする */
 .custom-file-upload {
-    /* 既存の<button>のスタイルをコピー */
-    background: white;
+    /* 中央寄せと幅をフォームと統一 */
+    width: 80%; 
+    max-width: 400px; 
+    
+    /* 基本のボタンからスタイルを継承 */
+    background: #2ecc71; /* 緑系の色に変更 */
+    color: white;
     border: none;
     padding: 0.8em 1.2em;
     border-radius: 12px;
     font-size: 1em;
-    margin: 0.5em;
+    font-weight: bold;
     
-    /* ボタンとして機能させるための重要な設定 */
-    display: inline-block; /* ブロック要素のように扱えるようにする */
-    cursor: pointer;      /* マウスカーソルをポインターにする */
-    font-weight: bold;    /* 文字を太くする（任意） */
-    color: black;
+    /* 💥 中央寄せのための必須設定 💥 */
+    display: inline-block; /* クリック領域として確保 */
+    cursor: pointer;
+    text-align: center;
+    margin: 0.5em 0; /* 上下のマージンを確保 */
+}
+
+.custom-file-upload:hover {
+    background: #27ae60;
+}
+
+/* ====================================
+    2. フッター & ナビゲーション
+    ==================================== */
+.footer {
+    padding: 0.5em;
     text-align: center;
 }
 
-/* 3. ホバー時のスタイルを既存の<button>に合わせて設定 */
-.custom-file-upload:hover {
-    background: #ffe6cc; /* 既存のbutton:hoverと同じ */
+.footer a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1em;
+    font-size: 1.2em;
+}
+
+/* ====================================
+    3. 一覧ページ (List) スタイル
+    ==================================== */
+.list-grid {
+    /* CSS Gridによるレスポンシブなカード配置 */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 0 10px;
+    max-width: 1200px; /* PCでの表示制限 */
+    margin: 0 auto;
+}
+
+.item-card {
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer; 
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+}
+
+.item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.item-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid #eee;
+}
+
+.item-info {
+    padding: 10px;
+}
+
+.item-info p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-date {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+/* 期限切れカードの視覚的強調 */
+.item-card.expired-card {
+    border: 3px solid #e74c3c; 
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+.expired-card .item-date:last-child {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+
+/* ====================================
+    4. モーダル (Modal) スタイル
+    ==================================== */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-body img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.modal-body h3 {
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
+.modal-details p {
+    margin: 10px 0;
+    padding: 8px;
+    border-bottom: 1px dashed #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+}
+
+.modal-details strong {
+    color: #34495e;
+    font-weight: 600;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.delete-form {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.delete-form button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.delete-form button:hover {
+    background-color: #c0392b;
+}
+
+/* ====================================
+    5. レスポンシブ対応
+    ==================================== */
+@media (max-width: 600px) {
+    .list-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
 }
