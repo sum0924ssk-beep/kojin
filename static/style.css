@@ -288,6 +288,14 @@ form button[type="submit"]:hover {
 .delete-form button:hover {
     background-color: #c0392b;
 }
+/* フォーム全体を中央に配置し、幅を制限する */
+form {
+    width: 90%; /* フォーム全体の幅を少し制限 */
+    max-width: 500px; /* PCでの最大幅 */
+    margin: 0 auto; /* フォーム全体を中央寄せにする */
+    text-align: center; /* 念のため、内部のインライン要素も中央に */
+    padding: 0; /* paddingをリセット */
+}
 
 /* ====================================
     5. レスポンシブ対応
