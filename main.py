@@ -100,7 +100,8 @@ async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 # POST: 調味料の登録処理
-@app.post("/register")
+# 🚨 修正: エンドポイントを /register から /upload に変更
+@app.post("/upload") 
 async def register_condiment(
     name: str = Form(...),
     expiry: str = Form(None),
@@ -114,8 +115,12 @@ async def register_condiment(
         
         try:
             with file_path.open("wb") as buffer:
+                # 登録処理でファイルポインタをリセットする処理を追加
+                image.file.seek(0)
                 shutil.copyfileobj(image.file, buffer)
-            image_path = f"/uploads/{unique_filename}"
+                
+            # DBに保存するパスは、StaticFilesのパス形式（/uploads/ファイル名）にする
+            image_path = f"/uploads/{unique_filename}" 
         except Exception as e:
             print(f"ファイル保存エラー: {e}")
             raise HTTPException(status_code=500, detail="ファイルのアップロードに失敗しました。")
@@ -181,9 +186,9 @@ async def delete_condiment(item_id: int):
     cur.execute("SELECT image_path FROM condiments WHERE id = ?", (item_id,))
     row = cur.fetchone()
     if row and row[0]:
-        # Pathオブジェクトとしてファイルパスを再構築
-        image_relative_path = row[0].replace("/uploads/", "")
-        file_to_delete = UPLOAD_DIR / image_relative_path 
+        # image_path は /uploads/ファイル名 形式なので、ファイル名だけを取得
+        image_filename = Path(row[0]).name
+        file_to_delete = UPLOAD_DIR / image_filename
         
         if file_to_delete.exists():
             os.remove(file_to_delete)
