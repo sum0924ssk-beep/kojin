@@ -19,10 +19,10 @@ EXPIRY_THRESHOLD_DAYS = 7
 
 # --- データベース初期化 ---
 def init_db():
-    # 💡 StaticFiles のマウントより前にディレクトリを作成する必要がある
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     
-    conn = sqlite3.connect(DB_NAME) 
+    # 🚨 修正1: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME)) 
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS condiments (
@@ -35,7 +35,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# 🚨 修正: アプリケーションの初期化とマウントの前にDB初期化（フォルダ作成）を実行
+# アプリケーションの初期化とマウントの前にDB初期化（フォルダ作成）を実行
 init_db() 
 
 
@@ -46,13 +46,12 @@ templates = Jinja2Templates(directory="templates")
 # 静的ファイルの提供 (CSS, JS, 画像など)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 🚨 修正: StaticFiles.__init__() から 'name' 引数を削除
+# StaticFiles.__init__() から 'name' 引数を削除
 # フォルダが init_db() で作成されているため、ここでマウント可能
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 # --- レシピAPI設定 (キーワード検索APIに切り替え) ---
-# 環境変数から読み込む（設定されていない場合はハードコードされたキーを使用）
 RAKUTEN_APP_ID = os.environ.get("RAKUTEN_APP_ID", "1013897941253771301") 
 RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/RecipeSearch/20170426" 
 
@@ -110,11 +109,9 @@ async def register_condiment(
     image_path = None
     if image and image.filename:
         ext = Path(image.filename).suffix
-        # ファイル名を生成
         unique_filename = f"{Path(name).stem}_{date.today().strftime('%Y%m%d')}_{os.urandom(8).hex()}{ext}"
         file_path = UPLOAD_DIR / unique_filename
         
-        # ファイルを保存
         try:
             with file_path.open("wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
@@ -124,7 +121,8 @@ async def register_condiment(
             raise HTTPException(status_code=500, detail="ファイルのアップロードに失敗しました。")
 
     # DBに保存
-    conn = sqlite3.connect(DB_NAME)
+    # 🚨 修正2: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME))
     cur = conn.cursor()
     cur.execute(
         "INSERT INTO condiments (name, expiry, image_path) VALUES (?, ?, ?)",
@@ -139,7 +137,8 @@ async def register_condiment(
 # GET: 調味料一覧表示
 @app.get("/list", response_class=HTMLResponse)
 async def list_condiments(request: Request):
-    conn = sqlite3.connect(DB_NAME)
+    # 🚨 修正3: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME))
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     
@@ -174,7 +173,8 @@ async def list_condiments(request: Request):
 # POST: 調味料の削除
 @app.post("/delete/{item_id}")
 async def delete_condiment(item_id: int):
-    conn = sqlite3.connect(DB_NAME)
+    # 🚨 修正4: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME))
     cur = conn.cursor()
     
     # 削除対象の画像パスを取得
@@ -201,7 +201,8 @@ async def delete_condiment(item_id: int):
 # -----------------------------------------------------------
 @app.get("/recipes", response_class=HTMLResponse)
 async def get_near_expiry_recipes(request: Request):
-    conn = sqlite3.connect(DB_NAME)
+    # 🚨 修正5: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME))
     cur = conn.cursor()
     
     # 期限が今日から設定日数以内のアイテムを抽出
