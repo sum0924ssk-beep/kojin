@@ -23,7 +23,9 @@ templates = Jinja2Templates(directory="templates")
 
 # 静的ファイルの提供 (CSS, JS, 画像など)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR, name="uploads"), name="uploads")
+
+# 🚨 修正: StaticFiles() の引数から 'name="uploads"' を削除しました
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads") 
 
 
 # --- データベース初期化 ---
@@ -50,10 +52,6 @@ init_db()
 
 
 # --- レシピAPI設定 (キーワード検索APIに切り替え) ---
-
-# ⚠ 注意: 楽天レシピAPIのキーワード検索APIに切り替えました。
-# 💡 修正: 環境変数から読み込む (設定されていない場合は直接書き込んだキーを使用)
-# 環境変数に設定できない場合は、RAKUTEN_APP_ID = "実際のキー" としてください。
 RAKUTEN_APP_ID = os.environ.get("RAKUTEN_APP_ID", "1013897941253771301") 
 RAKUTEN_RECIPE_URL = "https://app.rakuten.co.jp/services/api/Recipe/RecipeSearch/20170426" 
 
@@ -62,23 +60,21 @@ async def fetch_recipes_from_api(ingredients_query: str):
     """
     期限が近い調味料名 (ingredients_query) を使ってレシピAPIを呼び出す
     """
-    # 💡 楽天 キーワード検索 APIのロジックを実装
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
                 RAKUTEN_RECIPE_URL,
                 params={
                     "applicationId": RAKUTEN_APP_ID,
-                    "keyword": ingredients_query, # 👈 キーワード検索用パラメータ
+                    "keyword": ingredients_query, 
                     "format": "json"
                 },
                 timeout=10.0
             )
-            response.raise_for_status() # 4xx, 5xxエラー時に例外を発生
+            response.raise_for_status() 
             data = response.json()
             
             recipes = []
-            # 楽天レシピ検索APIのレスポンス構造を解析
             if 'result' in data and 'recipes' in data['result']:
                 for item in data['result']['recipes']:
                     recipe = item['recipe']
@@ -89,7 +85,6 @@ async def fetch_recipes_from_api(ingredients_query: str):
             return recipes
             
         except httpx.HTTPStatusError as e:
-            # APIキーが不正、またはアクセス制限の場合、ここでエラーが出ます (400 Bad Requestなど)
             print(f"HTTPエラーが発生しました: {e}")
             return []
         except Exception as e:
@@ -113,13 +108,10 @@ async def register_condiment(
 ):
     image_path = None
     if image and image.filename:
-        # ファイルの拡張子を取得
         ext = Path(image.filename).suffix
-        # ユニークなファイル名を生成
         unique_filename = f"{Path(name).stem}_{date.today().strftime('%Y%m%d')}_{os.urandom(8).hex()}{ext}"
         file_path = UPLOAD_DIR / unique_filename
         
-        # ファイルを保存
         try:
             with file_path.open("wb") as buffer:
                 shutil.copyfileobj(image.file, buffer)
@@ -171,7 +163,6 @@ async def list_condiments(request: Request):
                 elif days_left <= EXPIRY_THRESHOLD_DAYS:
                     item['near_expiry'] = True
             except ValueError:
-                # 日付形式が不正な場合
                 pass
 
     return templates.TemplateResponse("list.html", {"request": request, "condiments": condiments})
@@ -187,8 +178,6 @@ async def delete_condiment(item_id: int):
     cur.execute("SELECT image_path FROM condiments WHERE id = ?", (item_id,))
     row = cur.fetchone()
     if row and row[0]:
-        # Pathオブジェクトとしてファイルパスを再構築
-        # /uploads/filename.jpg -> uploads/filename.jpg
         image_relative_path = row[0].replace("/uploads/", "")
         file_to_delete = UPLOAD_DIR / image_relative_path 
         
