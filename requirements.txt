@@ -3,4 +3,3 @@ uvicorn
 jinja2
 python-multipart
 httpx
-python-dotenv

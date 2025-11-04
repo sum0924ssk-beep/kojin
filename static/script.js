@@ -1,79 +1,76 @@
-// static/script.js
+// static/script.js の内容
 document.addEventListener("DOMContentLoaded", async () => {
-    // === 要素の取得 ===
+    // 必須要素の参照
     const video = document.getElementById("camera");
     const canvas = document.getElementById("photoCanvas");
     const fileInput = document.getElementById("fileInput");
-    const captureButton = document.querySelector(".custom-file-upload");
+    const captureButton = document.querySelector(".custom-file-upload"); 
 
-    // === 必須要素チェック ===
+    // HTML要素の参照が失敗した場合に処理を中断
     if (!video || !canvas || !fileInput || !captureButton) {
-        console.warn("⚠️ カメラ関連の要素が見つかりません。撮影機能をスキップします。");
+        console.error("🔴 必須のHTML要素が見つかりません。カメラ関連機能は動作しません。");
         return;
     }
 
     let isCameraReady = false;
-    let stream = null;
 
-    // === カメラ起動処理 ===
     try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
-            audio: false,
+        // 1. カメラ起動 (HTTPS接続とユーザー許可が必須)
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: "environment" // 背面カメラを優先
+            }
         });
         video.srcObject = stream;
-
-        video.addEventListener("loadedmetadata", () => {
+        
+        // 2. ストリームの準備完了を待つ
+        video.onloadedmetadata = () => {
+            console.log("カメラストリームの準備ができました。");
             isCameraReady = true;
-            captureButton.textContent = "📸 撮影する";
-            console.log("✅ カメラが準備完了しました。");
-        });
+            captureButton.textContent = "📸 撮影する"; 
+        };
+
     } catch (err) {
-        console.error("❌ カメラ起動エラー:", err);
-        alert("カメラを利用できません。ブラウザの設定やHTTPS接続を確認してください。");
-        captureButton.disabled = true;
+        console.error("🔴 カメラ起動エラー:", err);
+        alert("カメラにアクセスできません。権限を確認するか、サイトがHTTPS接続になっているか確認してください。");
         captureButton.textContent = "カメラ使用不可";
         return;
     }
 
-    // === 撮影処理 ===
-    captureButton.addEventListener("click", async (e) => {
-        e.preventDefault();
+    // 📸 撮影ボタンクリック時の処理
+    captureButton.addEventListener("click", (event) => {
+        // デフォルトのファイル選択ダイアログの動作を阻止
+        event.preventDefault(); 
 
-        if (!isCameraReady) {
-            alert("カメラがまだ準備中です。少し待ってからお試しください。");
+        if (!isCameraReady || !video.srcObject) {
+            alert("カメラがまだ準備できていません。しばらく待ってから再度お試しください。");
             return;
         }
 
-        try {
-            const ctx = canvas.getContext("2d");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const context = canvas.getContext("2d");
+        
+        // 映像のサイズに合わせてCanvasを設定
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Blob化
-            const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
-            if (!blob) throw new Error("Blob変換に失敗しました。");
-
-            const file = new File([blob], `capture_${Date.now()}.jpeg`, { type: "image/jpeg" });
-
-            // FileInput にセット
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            fileInput.files = dt.files;
-
-            alert("📷 撮影完了！フォームに写真をセットしました。");
-
-        } catch (err) {
-            console.error("撮影処理中のエラー:", err);
-            alert("撮影中にエラーが発生しました。もう一度お試しください。");
-        }
-    });
-
-    // === ページ離脱時にカメラを停止 ===
-    window.addEventListener("beforeunload", () => {
-        if (stream) {
-            stream.getTracks().forEach((track) => track.stop());
-        }
+        // Canvas を Blob に変換して input[type=file] にセット
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                alert("キャプチャに失敗しました。");
+                return;
+            }
+            
+            // ファイルオブジェクトの作成
+            const file = new File([blob], "capture_" + Date.now() + ".jpeg", { type: "image/jpeg" });
+            
+            // DataTransferを使用してinput[type=file]に値をセット
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            alert("✅ 写真を撮影しました！フォームにセットされました。");
+            
+        }, "image/jpeg", 0.9); // JPEG形式、品質0.9
     });
 });

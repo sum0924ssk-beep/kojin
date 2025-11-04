@@ -2,31 +2,31 @@ import sqlite3
 import shutil
 import os
 from datetime import date, timedelta
-import httpx
+import httpx # API呼び出し用
 from fastapi import FastAPI, Request, File, UploadFile, Form, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pathlib import Path
-from dotenv import load_dotenv  # ← 追加
-
-# --- .envから環境変数読み込み ---
-load_dotenv()
 
 # --- 設定 ---
-TMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/condiments_app"))
+# 💡 デプロイ環境で書き込み可能な/tmp以下のパスを指定
+TMP_DIR = Path(os.environ.get("TEMP_DIR", "/tmp/condiments_app")) 
 DB_NAME = TMP_DIR / "condiments.db"
 UPLOAD_DIR = TMP_DIR / "uploads"
-EXPIRY_THRESHOLD_DAYS = 7  # 期限切れが近いとみなす日数
+# 期限切れが近いと見なす日数
+EXPIRY_THRESHOLD_DAYS = 7 
 
 # --- データベース初期化 ---
 def init_db():
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    conn = sqlite3.connect(str(DB_NAME))
+    
+    # 🚨 修正1: DB_NAMEをstr()で文字列に変換して渡す
+    conn = sqlite3.connect(str(DB_NAME)) 
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS condiments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             expiry TEXT,
             image_path TEXT
