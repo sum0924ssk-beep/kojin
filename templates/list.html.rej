@@ -1,95 +1,164 @@
 diff a/templates/list.html b/templates/list.html	(rejected hunks)
-@@ -177,29 +177,69 @@
- }
- </style>
+@@ -1,141 +1,33 @@
+ {% extends "base.html" %}
+-{% block content %}
+-<style>
+-/* ======= レイアウトとカード ======= */
+-.container h2 {
+-    text-align: center;
+-    color: #2c3e50;
+-    margin: 20px 0 30px;
+-    font-size: 1.8rem;
+-    font-weight: 700;
+-}
+-
+-.list-grid {
+-    display: grid;
+-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+-    gap: 20px;
+-    padding: 0 10px;
+-}
+-
+-.item-card {
+-    background: #fff;
+-    border-radius: 10px;
+-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+-    overflow: hidden;
+-    cursor: pointer;
+-    transition: transform 0.2s, box-shadow 0.2s;
+-    text-align: center;
+-}
+-
+-.item-card:hover {
+-    transform: translateY(-5px);
+-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+-}
+-
+-.item-card img {
+-    width: 100%;
+-    height: 150px;
+-    object-fit: cover;
+-}
+-
+-.item-info {
+-    padding: 10px;
+-}
+-
+-.item-info p {
+-    margin: 0;
+-    font-size: 1rem;
+-    font-weight: 600;
+-    color: #333;
+-}
+-
+-/* ======= モーダル ======= */
+-.modal {
+-    display: none;
+-    position: fixed;
+-    z-index: 100;
+-    left: 0; top: 0;
+-    width: 100%; height: 100%;
+-    background-color: rgba(0,0,0,0.8);
+-    backdrop-filter: blur(5px);
+-    padding-top: 60px;
+-}
+-
+-.modal-content {
+-    background: #fff;
+-    margin: 5% auto;
+-    padding: 20px;
+-    border-radius: 12px;
+-    width: 90%;
+-    max-width: 500px;
+-    animation: fadeIn 0.3s;
+-}
  
--<section class="container">
--<h2>登録済みちょみちょみ一覧</h2>
+-@keyframes fadeIn {
+-    from { opacity: 0; transform: translateY(-20px); }
+-    to { opacity: 1; transform: translateY(0); }
+-}
+-
+-.modal-body img {
+-    width: 100%;
+-    max-height: 300px;
+-    object-fit: contain;
+-    border-radius: 8px;
+-    margin-bottom: 20px;
+-}
+-
+-.close-btn {
+-    color: #aaa;
+-    float: right;
+-    font-size: 28px;
+-    font-weight: bold;
+-}
+-
+-.close-btn:hover {
+-    color: #333;
+-    cursor: pointer;
+-}
+-
+-.delete-form {
+-    text-align: center;
+-    margin-top: 20px;
+-}
+-
+-.delete-form button {
+-    background: #e74c3c;
+-    color: white;
+-    padding: 10px 20px;
+-    border: none;
+-    border-radius: 6px;
+-    cursor: pointer;
+-}
+-</style>
++{% block title %}調味料一覧 | ちょみちょみ{% endblock %}
+ 
++{% block content %}
+ <section class="container">
+-<h2>登録済み調味料一覧</h2>
 -
 -<div class="list-grid">
--{% for item in items %}
--<div class="item-card" 
--data-id="{{ item.id }}" 
--data-name="{{ item.name }}" 
--data-image="{{ item.image_url }}" 
--data-expiry="{{ item.expiry }}" 
--data-registered="{{ item.registered_date }}"
--onclick="openModal(this)">
--
--<img src="{{ item.image_url }}" alt="{{ item.name }}">
--
--<div class="item-info">
--<p>{{ item.name }}</p> 
-- <p class="item-date">登録日: {{ item.registered_date }}</p>
--<p class="item-date">賞味期限: {{ item.expiry }}</p> 
-+<div id="itemModal" class="modal">
-+    <div class="modal-content">
-+        </div>
- </div>
+-{% for item in condiments %}
+-<div class="item-card"
+-     data-id="{{ item.id }}"
+-     data-name="{{ item.name }}"
+-     data-image="{{ item.image_path }}"
+-     data-expiry="{{ item.expiry }}"
+-     onclick="openModal(this)">
+-    {% if item.image_path %}
+-        <img src="{{ item.image_path }}" alt="{{ item.name }}">
+-    {% else %}
+-        <img src="/static/noimage.png" alt="no image">
+-    {% endif %}
+-    <div class="item-info">
++  <h2>登録済み調味料一覧</h2>
++
++  {% if condiments %}
++  <div class="list-grid">
++    {% for item in condiments %}
++    <div class="item-card"
++         data-id="{{ item.id }}"
++         data-name="{{ item.name }}"
++         data-image="{{ item.image_path or url_for('static', filename='noimage.png') }}"
++         data-expiry="{{ item.expiry or '' }}"
++         onclick="openModal(this)">
++      <img src="{{ item.image_path or url_for('static', filename='noimage.png') }}" alt="{{ item.name }}">
++      <div class="item-info">
+         <p>{{ item.name }}</p>
+         {% if item.expiry %}
+         <p class="item-date">期限: {{ item.expiry }}</p>
+         {% endif %}
++      </div>
+     </div>
 -</div>
 -{% endfor %}
 -</div>
--</section>
++    {% endfor %}
++  </div>
++  {% else %}
++  <p style="text-align:center; color:#555;">まだ調味料が登録されていません。</p>
++  {% endif %}
+ </section>
  
-+<script>
-+// openModal(this) でHTMLから直接呼び出すため、関数はグローバルスコープで定義が必要です。
-+const modal = document.getElementById("itemModal");
-+const modalImage = document.getElementById("modalImage");
-+const modalName = document.getElementById("modalName");
-+const modalRegisteredDate = document.getElementById("modalRegisteredDate");
-+const modalExpiryDate = document.getElementById("modalExpiryDate");
-+const deleteForm = document.getElementById("deleteForm");
-+
-+/**
-+ * カードデータを受け取り、モーダルを開いて詳細を表示する
-+ * @param {HTMLElement} cardElement - クリックされたアイテムカード要素
-+ */
-+function openModal(cardElement) {
-+    // データの取得
-+    const id = cardElement.getAttribute('data-id');
-+    const name = cardElement.getAttribute('data-name');
-+    const image = cardElement.getAttribute('data-image');
-+    const expiry = cardElement.getAttribute('data-expiry');
-+    const registered = cardElement.getAttribute('data-registered');
-+    
-+    // モーダル要素へのデータ挿入
-+    modalImage.src = image;
-+    modalName.textContent = name;
-+    modalRegisteredDate.textContent = registered;
-+    
-+    // 賞味期限の表示調整と期限切れチェック
-+    if (expiry) {
-+        modalExpiryDate.textContent = expiry;
-+        modalExpiryDate.style.color = '#333';
-+        
-+        // 簡易的な期限チェック (今日の日付と比較)
-+        const today = new Date().toISOString().split('T')[0];
-+        if (expiry < today) {
-+            modalExpiryDate.textContent = expiry + " (期限切れ!)";
-+            modalExpiryDate.style.color = '#e74c3c'; // 赤色
-+        }
-+    } else {
-+        modalExpiryDate.textContent = '未設定';
-+        modalExpiryDate.style.color = '#7f8c8d';
-+    }
-+
-+    // 削除フォームの Action URLを設定 (例: /delete/123)
-+    deleteForm.action = `/delete/${id}`;
-+    
-+    // モーダルを表示
-+    modal.style.display = "block";
-+}
-+
-+function closeModal() {
-+    modal.style.display = "none";
-+}
-+
-+// モーダルの外側をクリックで閉じる
-+window.onclick = function(event) {
-+    if (event.target === modal) {
-+        closeModal();
-+    }
-+}
-+</script>
- {% endblock %}
-\ No newline at end of file
+ <!-- モーダル -->
